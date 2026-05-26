@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Пескоструйная очистка до Sa 2.5 и антикоррозийная окраска по всей России. АБРА — 500+ объектов, гарантия 3 года.">
+    <title>АБРА | Пескоструйная очистка и профессиональная окраска</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap');
+        :root { --accent: #FF6B35; }
+        body { font-family: 'Inter', sans-serif; -webkit-text-size-adjust: 100%; }
+        .manrope { font-family: 'Manrope', sans-serif; }
+
+        .hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+        .hero-overlay { background: linear-gradient(rgba(7,10,18,0.65), rgba(7,10,18,0.85)); position: absolute; inset: 0; z-index: -1; }
+
+        .glass { background: rgba(15,20,32,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); }
+        .glow-accent { box-shadow: 0 0 45px -10px rgba(255,107,53,0.6); }
+
+        .card-hover { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -10px rgba(255,107,53,0.25); }
+
+        /* Плавный скролл */
+        html { scroll-behavior: smooth; }
+
+        /* Убираем outline на iOS */
+        input, textarea, select, button { outline: none; -webkit-appearance: none; }
+
+        /* Телефонный ввод — числовая клавиатура на мобильных */
+        input[type="tel"] { font-size: 16px; } /* 16px — не зумит на iOS */
+        input[type="text"], textarea { font-size: 16px; }
+
+        /* ── ЛАЙТБОКС ── */
+        .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 9999; align-items: center; justify-content: center; padding: 16px; }
+        .lightbox.active { display: flex; }
+        .lightbox-inner { position: relative; width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; }
+        .lightbox-inner img { max-height: 70vh; width: 100%; object-fit: contain; border-radius: 16px; }
+        .lightbox-close { position: absolute; top: -48px; right: 0; font-size: 44px; color: white; cursor: pointer; line-height: 1; padding: 4px 12px; }
+        /* Стрелки: на десктопе снаружи, на мобильном — поверх */
+        .lb-arrows { display: flex; justify-content: space-between; width: 100%; margin-top: 20px; }
+        .lb-arrow { background: rgba(255,107,53,0.85); border: none; color: white; font-size: 1.8rem; padding: 12px 24px; border-radius: 12px; cursor: pointer; flex: 1; margin: 0 6px; }
+        .lb-counter { text-align: center; margin-top: 12px; color: #9ca3af; font-size: 0.9rem; }
+        /* десктоп — классические боковые стрелки */
+        @media (min-width: 768px) {
+            .lightbox-inner img { max-height: 80vh; }
+            .lb-arrows { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); margin: 0; pointer-events: none; }
+            .lb-arrow { position: absolute; pointer-events: all; top: 0; padding: 16px 20px; margin: 0; border-radius: 8px; font-size: 2rem; }
+            .lb-arrow.prev { left: -68px; }
+            .lb-arrow.next { right: -68px; }
+        }
+
+        /* ── HEADER телефон скрывается на < 480px ── */
+        @media (max-width: 479px) {
+            .hdr-phone { display: none; }
+        }
+
+        /* ── FLOAT WIDGET — не шире экрана ── */
+        .widget-menu {
+            width: min(320px, calc(100vw - 24px));
+            right: 0;
+        }
+
+        /* ── ПРОЦЕСС — 2 колонки на мобильном ── */
+        @media (max-width: 767px) {
+            .process-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; }
+            .process-grid > *:last-child { grid-column: span 2; }
+        }
+
+        /* ── ВАЛИДАЦИЯ ТЕЛЕФОНА ── */
+        .phone-ok   { border-color: #22c55e !important; }
+        .phone-err  { border-color: #ef4444 !important; }
+        .phone-hint { font-size: 0.75rem; margin-top: 4px; display: none; }
+        .phone-hint.show { display: block; }
+
+        /* ── GEO КАРТА fallback ── */
+        .map-fallback {
+            background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(15,20,32,0.9));
+            min-height: 220px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 24px;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* ── КАЛЬКУЛЯТОР range slider ── */
+        input[type=range] { width: 100%; accent-color: #FF6B35; height: 6px; }
+
+        /* ── АНИМАЦИИ ── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .anim { opacity: 0; }
+        .anim.visible { animation: fadeUp 0.5s ease forwards; }
+    </style>
+</head>
+<body class="bg-[#070A12] text-white overflow-x-hidden"
+      x-data="{ mobileMenu: false, calcArea: 300, calcType: 'complex', calcZone: '1', widgetOpen: false, lightboxIndex: 0, showLightbox: false }">
+
+    <!-- ══ HEADER ══ -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[#070A12]/95 backdrop-blur-2xl border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+
+            <div class="text-2xl sm:text-3xl font-black tracking-[-2px] manrope flex-shrink-0">
+                АБ<span class="text-[#FF6B35]">РА</span>
+            </div>
+
+            <!-- Desktop nav -->
+            <nav class="hidden md:flex items-center gap-6 lg:gap-10 text-sm font-medium">
+                <a href="#services" class="hover:text-[#FF6B35] transition whitespace-nowrap">Услуги</a>
+                <a href="#cases"    class="hover:text-[#FF6B35] transition whitespace-nowrap">Кейсы</a>
+                <a href="#geo"      class="hover:text-[#FF6B35] transition whitespace-nowrap">География</a>
+                <a href="#pricing"  class="hover:text-[#FF6B35] transition whitespace-nowrap">Цены</a>
+                <a href="#process"  class="hover:text-[#FF6B35] transition whitespace-nowrap">Процесс</a>
+            </nav>
+
+            <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                <a href="tel:+79774131554" class="hdr-phone hidden sm:block font-semibold text-base lg:text-lg hover:text-[#FF6B35] whitespace-nowrap">
+                    +7 (977) 413-15-54
+                </a>
+                <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+                        class="bg-[#FF6B35] hover:bg-[#FF8C5A] px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-sm sm:text-base font-semibold glow-accent whitespace-nowrap">
+                    Рассчитать
+                </button>
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden text-3xl leading-none p-1" aria-label="Меню">
+                    <span x-text="mobileMenu ? '✕' : '☰'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div x-show="mobileMenu" x-transition
+             class="md:hidden bg-[#070A12] border-t border-white/10 px-4 pb-4 flex flex-col gap-1">
+            <a href="#services" @click="mobileMenu=false" class="py-3 px-2 hover:text-[#FF6B35] border-b border-white/5 text-base font-medium">Услуги</a>
+            <a href="#cases"    @click="mobileMenu=false" class="py-3 px-2 hover:text-[#FF6B35] border-b border-white/5 text-base font-medium">Кейсы</a>
+            <a href="#geo"      @click="mobileMenu=false" class="py-3 px-2 hover:text-[#FF6B35] border-b border-white/5 text-base font-medium">География</a>
+            <a href="#pricing"  @click="mobileMenu=false" class="py-3 px-2 hover:text-[#FF6B35] border-b border-white/5 text-base font-medium">Цены</a>
+            <a href="#process"  @click="mobileMenu=false" class="py-3 px-2 hover:text-[#FF6B35] border-b border-white/5 text-base font-medium">Процесс</a>
+            <a href="tel:+79774131554" class="py-3 px-2 text-[#FF6B35] font-semibold text-base">+7 (977) 413-15-54</a>
+        </div>
+    </header>
+
+    <!-- ══ HERO ══ -->
+    <section class="relative min-h-[100svh] flex items-center overflow-hidden">
+        <video autoplay muted loop playsinline class="hero-video">
+            <source src="hero-video.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 pt-24 pb-16 w-full">
+            <div class="max-w-xl">
+                <div class="inline-flex items-center gap-2 bg-white/10 text-[#FF6B35] px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium mb-6 sm:mb-8">
+                    ISO Sa 2.5 • 3 ГОДА ГАРАНТИИ
+                </div>
+                <h1 class="manrope text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-1px] sm:tracking-[-2px] mb-5 sm:mb-8">
+                    Пескоструйная очистка<br>и антикоррозийная защита
+                </h1>
+                <p class="text-base sm:text-xl text-gray-200 leading-relaxed">
+                    Мощный результат. Полный цикл.<br class="sm:hidden"> Работаем по всей России.
+                </p>
+                <!-- Кнопки: колонка на мобильном, ряд на sm+ -->
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-5 mt-8 sm:mt-14">
+                    <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+                            class="bg-[#FF6B35] hover:bg-[#FF8C5A] px-6 sm:px-10 py-4 sm:py-5 rounded-2xl text-base sm:text-xl font-semibold text-center">
+                        Получить расчёт
+                    </button>
+                    <a href="#cases"
+                       class="border border-white/60 hover:border-white px-6 sm:px-10 py-4 sm:py-5 rounded-2xl text-base sm:text-xl font-medium text-center">
+                        Смотреть кейсы
+                    </a>
+                </div>
+                <!-- Быстрые статы -->
+                <div class="grid grid-cols-3 gap-3 mt-10 sm:mt-14 border-t border-white/10 pt-8">
+                    <div>
+                        <div class="manrope text-2xl sm:text-3xl font-bold">500<span class="text-[#FF6B35]">+</span></div>
+                        <div class="text-xs text-gray-400 mt-1">объектов сдано</div>
+                    </div>
+                    <div>
+                        <div class="manrope text-2xl sm:text-3xl font-bold">24<span class="text-[#FF6B35]">ч</span></div>
+                        <div class="text-xs text-gray-400 mt-1">выезд по Москве</div>
+                    </div>
+                    <div>
+                        <div class="manrope text-2xl sm:text-3xl font-bold">3<span class="text-[#FF6B35]">г</span></div>
+                        <div class="text-xs text-gray-400 mt-1">гарантия</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ SERVICES ══ -->
+    <section id="services" class="py-16 sm:py-24 bg-[#0F1420]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center mb-10 sm:mb-16">
+                <h2 class="manrope text-3xl sm:text-4xl font-bold">
+                    Решаем задачи <span class="text-[#FF6B35]">любой сложности</span>
+                </h2>
+            </div>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-8">
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl card-hover anim">
+                    <div class="text-4xl sm:text-5xl mb-4 sm:mb-6">🏗️</div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">Пескоструйная очистка</h3>
+                    <p class="text-gray-400 text-sm sm:text-base">Sa 2.5 / Sa 3. Полное удаление ржавчины и старой краски.</p>
+                    <div class="mt-4 text-[#FF6B35] font-semibold text-sm">от 300 ₽/м²</div>
+                </div>
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl card-hover anim">
+                    <div class="text-4xl sm:text-5xl mb-4 sm:mb-6">🛡️</div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">Антикоррозийная защита</h3>
+                    <p class="text-gray-400 text-sm sm:text-base">Грунтовка + финишные эмали под любые условия эксплуатации.</p>
+                    <div class="mt-4 text-[#FF6B35] font-semibold text-sm">срок до 15 лет</div>
+                </div>
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl card-hover anim sm:col-span-2 md:col-span-1">
+                    <div class="text-4xl sm:text-5xl mb-4 sm:mb-6">🎨</div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">Окраска под ключ</h3>
+                    <p class="text-gray-400 text-sm sm:text-base">Металлоконструкции, техника, фасады, резервуары.</p>
+                    <div class="mt-4 text-[#FF6B35] font-semibold text-sm">гарантия 3 года</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CASES ══ -->
+    <section id="cases" class="py-16 sm:py-24 bg-[#070A12]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center mb-10 sm:mb-16">
+                <h2 class="manrope text-3xl sm:text-4xl font-bold">
+                    Реальные <span class="text-[#FF6B35]">кейсы</span>
+                </h2>
+                <p class="text-gray-400 mt-2 text-sm">Нажмите на фото для просмотра</p>
+            </div>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-8">
+                <div @click="lightboxIndex=0; showLightbox=true"
+                     class="glass rounded-2xl sm:rounded-3xl overflow-hidden card-hover cursor-pointer anim">
+                    <div class="relative h-52 sm:h-64 overflow-hidden bg-[#1a1f2e]">
+                        <img src="case1.jpg" alt="Металлоангар 2400 м²"
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="hidden w-full h-full items-center justify-center text-gray-500 text-sm">📷 Фото загружается</div>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <p class="font-semibold text-sm sm:text-base">Металлоангар 2 400 м²</p>
+                        <p class="text-xs sm:text-sm text-gray-400 mt-1">Казань — Sa 2.5, за 9 дней</p>
+                        <div class="flex gap-4 mt-3">
+                            <span class="text-[#FF6B35] font-bold text-sm">2400 м²</span>
+                            <span class="text-gray-400 text-sm">9 дней</span>
+                            <span class="text-gray-400 text-sm">3г гарантия</span>
+                        </div>
+                    </div>
+                </div>
+                <div @click="lightboxIndex=1; showLightbox=true"
+                     class="glass rounded-2xl sm:rounded-3xl overflow-hidden card-hover cursor-pointer anim">
+                    <div class="relative h-52 sm:h-64 overflow-hidden bg-[#1a1f2e]">
+                        <img src="case2.jpg" alt="Экскаваторы Liebherr"
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="hidden w-full h-full items-center justify-center text-gray-500 text-sm">📷 Фото загружается</div>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <p class="font-semibold text-sm sm:text-base">Экскаваторы Liebherr — 4 ед.</p>
+                        <p class="text-xs sm:text-sm text-gray-400 mt-1">Подмосковье — пескоструй + антикор</p>
+                    </div>
+                </div>
+                <div @click="lightboxIndex=2; showLightbox=true"
+                     class="glass rounded-2xl sm:rounded-3xl overflow-hidden card-hover cursor-pointer anim sm:col-span-2 md:col-span-1">
+                    <div class="relative h-52 sm:h-64 overflow-hidden bg-[#1a1f2e]">
+                        <img src="case3.jpg" alt="РВС-1000 резервуары"
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="hidden w-full h-full items-center justify-center text-gray-500 text-sm">📷 Фото загружается</div>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <p class="font-semibold text-sm sm:text-base">РВС-1000 — 6 резервуаров</p>
+                        <p class="text-xs sm:text-sm text-gray-400 mt-1">Воронеж — выезд 380 км, внутри и снаружи</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ LIGHTBOX ══ -->
+    <div x-show="showLightbox"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         class="lightbox active"
+         @click.self="showLightbox=false"
+         @keydown.escape.window="showLightbox=false"
+         @keydown.arrow-left.window="lightboxIndex=(lightboxIndex-1+3)%3"
+         @keydown.arrow-right.window="lightboxIndex=(lightboxIndex+1)%3">
+        <div class="lightbox-inner" @click.stop>
+            <button @click="showLightbox=false" class="lightbox-close">×</button>
+            <img :src="['case1.jpg','case2.jpg','case3.jpg'][lightboxIndex]"
+                 :alt="['Ангар','Экскаваторы','Резервуары'][lightboxIndex]">
+            <!-- Стрелки: на мобильном — снизу рядом, на десктопе — позиционируются через CSS -->
+            <div class="lb-arrows">
+                <button @click="lightboxIndex=(lightboxIndex-1+3)%3" class="lb-arrow prev">‹ Назад</button>
+                <button @click="lightboxIndex=(lightboxIndex+1)%3"   class="lb-arrow next">Вперёд ›</button>
+            </div>
+            <div class="lb-counter">
+                <span x-text="lightboxIndex+1"></span> / 3
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ GEO ══ -->
+    <section id="geo" class="py-16 sm:py-24 bg-[#0F1420]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="grid md:grid-cols-2 gap-10 sm:gap-16 items-center">
+                <div class="anim">
+                    <h2 class="manrope text-3xl sm:text-4xl font-bold mb-6">
+                        Работаем <span class="text-[#FF6B35]">по всей России</span>
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex justify-between items-start gap-4">
+                            <div>
+                                <h4 class="font-semibold text-sm sm:text-base">Зона 1 — Москва и МО</h4>
+                                <p class="text-gray-400 text-xs sm:text-sm mt-1">0–300 км • Выезд за 24 ч • Логистика 0 ₽</p>
+                            </div>
+                            <span class="text-[#FF6B35] font-bold text-sm flex-shrink-0">Приоритет</span>
+                        </div>
+                        <div class="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex justify-between items-start gap-4">
+                            <div>
+                                <h4 class="font-semibold text-sm sm:text-base">Зона 2 — Ближние регионы</h4>
+                                <p class="text-gray-400 text-xs sm:text-sm mt-1">300–800 км • СПб, Казань, Воронеж</p>
+                            </div>
+                            <span class="text-[#FF6B35] font-bold text-sm flex-shrink-0">Стандарт</span>
+                        </div>
+                        <div class="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex justify-between items-start gap-4">
+                            <div>
+                                <h4 class="font-semibold text-sm sm:text-base">Зона 3 — Дальние регионы</h4>
+                                <p class="text-gray-400 text-xs sm:text-sm mt-1">800–2000 км • Урал, Юг, Поволжье</p>
+                            </div>
+                            <span class="text-[#FF6B35] font-bold text-sm flex-shrink-0">Индивид.</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- карта: если map-russia.jpg нет — красивый fallback -->
+                <div class="glass rounded-2xl sm:rounded-3xl p-3 sm:p-4 anim">
+                    <img src="map-russia.jpg" alt="Карта России — зоны выезда"
+                         class="rounded-2xl w-full"
+                         onerror="this.parentElement.innerHTML='<div class=\'map-fallback\'><div class=\'text-center p-8\'><div class=\'text-6xl mb-4\'>🗺️</div><div class=\'manrope text-2xl font-bold text-[#FF6B35]\'>2 000 КМ</div><div class=\'text-gray-300 mt-2\'>радиус выезда</div><div class=\'text-gray-400 text-sm mt-3\'>Москва • СПб • Казань • Воронеж<br>Самара • Екатеринбург • Краснодар</div></div></div>'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ PRICING / CALCULATOR ══ -->
+    <section id="pricing" class="py-16 sm:py-24 bg-[#070A12]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="manrope text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-16">
+                Рассчитайте стоимость <span class="text-[#FF6B35]">онлайн</span>
+            </h2>
+            <!-- На мобильном — одна колонка -->
+            <div class="grid md:grid-cols-2 gap-8 sm:gap-16">
+                <div class="anim">
+                    <label class="block text-sm text-gray-400 mb-2">Площадь (м²)</label>
+                    <input type="range" min="50" max="5000" step="50" x-model="calcArea" class="w-full">
+                    <div class="flex justify-between text-sm mt-2 text-gray-400">
+                        <span>50 м²</span>
+                        <span class="text-white font-semibold" x-text="calcArea + ' м²'"></span>
+                        <span>5000 м²</span>
+                    </div>
+
+                    <label class="block text-sm text-gray-400 mt-6 sm:mt-8 mb-2">Тип работ</label>
+                    <select x-model="calcType"
+                            class="w-full bg-[#0F1420] text-white border border-white/20 rounded-2xl px-4 py-4 text-sm sm:text-base">
+                        <option value="clean">Только очистка — 300 ₽/м²</option>
+                        <option value="complex" selected>Очистка + грунт + окраска — 550 ₽/м²</option>
+                        <option value="premium">Премиум антикор — 850 ₽/м²</option>
+                    </select>
+
+                    <label class="block text-sm text-gray-400 mt-6 sm:mt-8 mb-3">Зона выезда</label>
+                    <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                        <button @click="calcZone='1'"
+                                :class="calcZone==='1' ? 'bg-[#FF6B35] text-white border-transparent' : 'bg-white/5 border-white/20'"
+                                class="py-3 sm:py-4 rounded-2xl text-sm font-medium border transition">
+                            <span class="block font-bold">Зона 1</span>
+                            <span class="text-xs opacity-70">0–300 км</span>
+                        </button>
+                        <button @click="calcZone='2'"
+                                :class="calcZone==='2' ? 'bg-[#FF6B35] text-white border-transparent' : 'bg-white/5 border-white/20'"
+                                class="py-3 sm:py-4 rounded-2xl text-sm font-medium border transition">
+                            <span class="block font-bold">Зона 2</span>
+                            <span class="text-xs opacity-70">300–800 км</span>
+                        </button>
+                        <button @click="calcZone='3'"
+                                :class="calcZone==='3' ? 'bg-[#FF6B35] text-white border-transparent' : 'bg-white/5 border-white/20'"
+                                class="py-3 sm:py-4 rounded-2xl text-sm font-medium border transition">
+                            <span class="block font-bold">Зона 3</span>
+                            <span class="text-xs opacity-70">800+ км</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-8 glass rounded-2xl sm:rounded-3xl p-6 sm:p-8">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 text-sm sm:text-base">Ориентировочно:</span>
+                            <span class="manrope text-2xl sm:text-4xl font-bold text-[#FF6B35]"
+                                  x-text="(Math.round(calcArea * (calcType==='clean'?300:calcType==='complex'?550:850) + (calcZone==='1'?0:calcZone==='2'?15000:35000))).toLocaleString('ru') + ' ₽'">
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Точная стоимость — после осмотра объекта</p>
+                        <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+                                class="w-full mt-4 bg-[#FF6B35] hover:bg-[#FF8C5A] py-4 rounded-2xl font-semibold text-sm sm:text-base transition">
+                            Получить точный расчёт
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl sm:rounded-3xl p-6 sm:p-8 self-start anim">
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">Фиксированные тарифы</h3>
+                    <ul class="space-y-4 sm:space-y-6">
+                        <li class="flex justify-between items-center gap-4 py-3 border-b border-white/10">
+                            <span class="text-sm sm:text-base text-gray-300">Пескоструйная очистка</span>
+                            <span class="font-semibold text-[#FF6B35] text-sm sm:text-base whitespace-nowrap">от 300 ₽/м²</span>
+                        </li>
+                        <li class="flex justify-between items-center gap-4 py-3 border-b border-white/10">
+                            <span class="text-sm sm:text-base text-gray-300">Комплекс «под ключ»</span>
+                            <span class="font-semibold text-[#FF6B35] text-sm sm:text-base whitespace-nowrap">от 550 ₽/м²</span>
+                        </li>
+                        <li class="flex justify-between items-center gap-4 py-3">
+                            <span class="text-sm sm:text-base text-gray-300">Спецтехника (почасово)</span>
+                            <span class="font-semibold text-[#FF6B35] text-sm sm:text-base whitespace-nowrap">от 4 000 ₽/ч</span>
+                        </li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-[#FF6B35]/10 rounded-2xl border border-[#FF6B35]/20">
+                        <p class="text-xs sm:text-sm text-gray-300">
+                            🛡️ Гарантия 3 года · Договор · Фотоотчёт на каждом этапе · Акт выполненных работ
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ PROCESS ══ -->
+    <section id="process" class="py-16 sm:py-24 bg-[#0F1420]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="manrope text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-16">Как мы работаем</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-5 sm:gap-8 process-grid">
+                <div class="text-center anim">
+                    <div class="mx-auto w-12 h-12 bg-[#FF6B35] text-white rounded-2xl flex items-center justify-center text-xl font-bold mb-3 sm:mb-4">1</div>
+                    <h4 class="font-semibold text-sm sm:text-base">Заявка + фото</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">Ответ за 2 часа</p>
+                </div>
+                <div class="text-center anim">
+                    <div class="mx-auto w-12 h-12 bg-[#FF6B35] text-white rounded-2xl flex items-center justify-center text-xl font-bold mb-3 sm:mb-4">2</div>
+                    <h4 class="font-semibold text-sm sm:text-base">Очистка Sa 2.5</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">До чистого металла</p>
+                </div>
+                <div class="text-center anim">
+                    <div class="mx-auto w-12 h-12 bg-[#FF6B35] text-white rounded-2xl flex items-center justify-center text-xl font-bold mb-3 sm:mb-4">3</div>
+                    <h4 class="font-semibold text-sm sm:text-base">Грунтование</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">Антикор слой</p>
+                </div>
+                <div class="text-center anim">
+                    <div class="mx-auto w-12 h-12 bg-[#FF6B35] text-white rounded-2xl flex items-center justify-center text-xl font-bold mb-3 sm:mb-4">4</div>
+                    <h4 class="font-semibold text-sm sm:text-base">Финиш-окраска</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">Контроль толщины</p>
+                </div>
+                <div class="text-center anim col-span-2 md:col-span-1">
+                    <div class="mx-auto w-12 h-12 bg-[#FF6B35] text-white rounded-2xl flex items-center justify-center text-xl font-bold mb-3 sm:mb-4">5</div>
+                    <h4 class="font-semibold text-sm sm:text-base">Сдача + гарантия</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">3 года</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ TESTIMONIALS ══ -->
+    <section class="py-16 sm:py-24 bg-[#070A12]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="manrope text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-16">Отзывы клиентов</h2>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-8">
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl anim">
+                    <div class="text-[#FF6B35] text-4xl leading-none mb-4 font-serif">"</div>
+                    <p class="text-sm sm:text-base text-gray-200 leading-relaxed">Сделали ангар за 9 дней. Качество отличное, всё по договору. Уже работаем над вторым объектом.</p>
+                    <div class="mt-5 pt-4 border-t border-white/10">
+                        <span class="text-[#FF6B35] font-semibold text-sm">ООО МеталлПроф</span>
+                        <span class="text-gray-500 text-xs ml-2">Казань</span>
+                    </div>
+                </div>
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl anim">
+                    <div class="text-[#FF6B35] text-4xl leading-none mb-4 font-serif">"</div>
+                    <p class="text-sm sm:text-base text-gray-200 leading-relaxed">Экскаватор выглядит как новый. Бригада профессиональная, работали аккуратно, не простаивали.</p>
+                    <div class="mt-5 pt-4 border-t border-white/10">
+                        <span class="text-[#FF6B35] font-semibold text-sm">ИП Сидоров</span>
+                        <span class="text-gray-500 text-xs ml-2">Подмосковье</span>
+                    </div>
+                </div>
+                <div class="glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl anim sm:col-span-2 md:col-span-1">
+                    <div class="text-[#FF6B35] text-4xl leading-none mb-4 font-serif">"</div>
+                    <p class="text-sm sm:text-base text-gray-200 leading-relaxed">Выезжали в Воронеж, 380 км. Всё чётко: смета, сроки, результат. Рекомендую без оговорок.</p>
+                    <div class="mt-5 pt-4 border-t border-white/10">
+                        <span class="text-[#FF6B35] font-semibold text-sm">Частный клиент</span>
+                        <span class="text-gray-500 text-xs ml-2">380 м²</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CONTACT ══ -->
+    <section id="contact" class="py-16 sm:py-24 bg-[#0F1420]">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6">
+            <div class="glass rounded-2xl sm:rounded-3xl p-6 sm:p-12 anim">
+                <h2 class="manrope text-3xl sm:text-4xl font-bold text-center mb-2">Рассчитать стоимость</h2>
+                <p class="text-center text-gray-400 mb-8 text-sm sm:text-base">Менеджер перезвонит за 2 часа</p>
+
+                <form id="contactForm" class="space-y-4" onsubmit="handleSubmit(event)">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <input type="text" id="name" placeholder="Имя" required
+                               class="bg-white/10 border border-white/20 focus:border-[#FF6B35] rounded-2xl px-4 sm:px-6 py-4 text-base w-full transition placeholder-gray-500">
+                        <div class="flex flex-col">
+                            <input type="tel" id="phone" placeholder="+7 (___) ___-__-__" required
+                                   inputmode="tel" autocomplete="tel" maxlength="18"
+                                   class="bg-white/10 border border-white/20 rounded-2xl px-4 sm:px-6 py-4 text-base w-full transition placeholder-gray-500"
+                                   id="phone">
+                            <span class="phone-hint text-red-400" id="phone-error">Введите корректный номер РФ</span>
+                        </div>
+                    </div>
+                    <input type="text" id="city" placeholder="Город / регион" required
+                           class="w-full bg-white/10 border border-white/20 focus:border-[#FF6B35] rounded-2xl px-4 sm:px-6 py-4 text-base transition placeholder-gray-500">
+                    <input type="text" id="area" placeholder="Площадь объекта, м² (примерно)"
+                           class="w-full bg-white/10 border border-white/20 focus:border-[#FF6B35] rounded-2xl px-4 sm:px-6 py-4 text-base transition placeholder-gray-500">
+                    <textarea id="comment" rows="3" placeholder="Описание объекта, комментарий"
+                              class="w-full bg-white/10 border border-white/20 focus:border-[#FF6B35] rounded-2xl px-4 sm:px-6 py-4 text-base transition placeholder-gray-500 resize-none"></textarea>
+                    <button type="submit"
+                            class="w-full bg-[#FF6B35] hover:bg-[#FF8C5A] py-5 rounded-2xl text-lg font-semibold transition">
+                        Отправить заявку →
+                    </button>
+                    <p class="text-center text-xs text-gray-500">Ответ за 2 часа · Расчёт бесплатно · Без спама</p>
+                </form>
+
+                <div id="formSuccess" class="hidden text-center py-8">
+                    <div class="text-5xl mb-4">✅</div>
+                    <h3 class="manrope text-2xl font-bold text-[#FF6B35]">Заявка отправлена!</h3>
+                    <p class="text-gray-400 mt-2">Мы свяжемся с вами в течение 2 часов.</p>
+                    <p class="text-gray-400 text-sm mt-1">+7 (977) 413-15-54</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ FLOATING WIDGET ══ -->
+    <div class="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[100]"
+         x-data="{ widgetOpen: false }" @click.outside="widgetOpen=false">
+        <button @click="widgetOpen=!widgetOpen"
+                class="w-14 h-14 sm:w-16 sm:h-16 bg-[#FF6B35] hover:bg-[#FF8C5A] rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition text-2xl sm:text-3xl glow-accent">
+            💬
+        </button>
+        <div x-show="widgetOpen"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="widget-menu absolute bottom-16 sm:bottom-20 right-0 glass rounded-2xl p-3 shadow-2xl flex flex-col gap-1">
+            <a href="https://t.me/+79774131554" target="_blank"
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-xl transition">
+                <svg class="w-7 h-7 text-[#2AABEE] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+                <span class="font-medium text-sm">Telegram</span>
+            </a>
+            <a href="https://vk.com/abra_russia" target="_blank"
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-xl transition">
+                <svg class="w-7 h-7 text-[#0077FF] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.391 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.862-.525-2.049-1.714-1.033-1.01-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.12-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.678.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.204.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.491.763-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.49-.085.744-.576.744z"/>
+                </svg>
+                <span class="font-medium text-sm">ВКонтакте</span>
+            </a>
+            <a href="tel:+79774131554"
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-xl transition">
+                <svg class="w-7 h-7 text-[#10B981] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.99.38 1.96.72 2.9a2 2 0 0 1-.45 2.1L9.09 9.09a17.94 17.94 0 0 0 6.36 6.36l1.27-1.27a2 2 0 0 1 2.1-.45c.94.34 1.91.593 2.9.72A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <span class="font-medium text-sm">+7 (977) 413-15-54</span>
+            </a>
+            <a href="mailto:denismarkunin@mail.ru"
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-xl transition">
+                <svg class="w-7 h-7 text-[#FF6B35] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span class="font-medium text-sm">Email</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ══ FOOTER ══ -->
+    <footer class="bg-[#070A12] py-12 sm:py-16 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+            <div class="manrope text-3xl sm:text-4xl font-black tracking-[-2px] mb-3">
+                АБ<span class="text-[#FF6B35]">РА</span>
+            </div>
+            <p class="text-gray-400 text-sm sm:text-base">© 2026 АБРА — Пескоструйная очистка и защитная окраска по всей России</p>
+            <div class="flex justify-center gap-6 mt-4 text-sm text-gray-500">
+                <a href="tel:+79774131554" class="hover:text-[#FF6B35]">+7 (977) 413-15-54</a>
+                <a href="mailto:denismarkunin@mail.ru" class="hover:text-[#FF6B35]">denismarkunin@mail.ru</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    /* ── КОНФИГУРАЦИЯ ── */
+    const TG_TOKEN     = 'ВСТАВЬТЕ_ТОКЕН_БОТА';
+    const TG_CHAT_ID   = 'ВСТАВЬТЕ_CHAT_ID';
+    const FORMSPREE_ID = 'ВСТАВЬТЕ_FORMSPREE_ID';
+
+    /* ── МАСКА + ВАЛИДАЦИЯ ТЕЛЕФОНА ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        const ph  = document.getElementById('phone');
+        const err = document.getElementById('phone-error');
+        if (!ph) return;
+
+        function fmt(raw) {
+            let d = raw.replace(/\D/g,'');
+            if (d.startsWith('8')) d = '7'+d.slice(1);
+            if (d.length && !d.startsWith('7')) d = '7'+d;
+            d = d.slice(0,11);
+            let f = '';
+            if (d.length>0) f='+7';
+            if (d.length>1) f+=' ('+d.slice(1,4);
+            if (d.length>=4) f+=') '+d.slice(4,7);
+            if (d.length>=7) f+='-'+d.slice(7,9);
+            if (d.length>=9) f+='-'+d.slice(9,11);
+            return {f, d};
+        }
+
+        function isValid(d) {
+            if (d.length!==11||!d.startsWith('7')) return false;
+            if (!['3','4','8','9'].includes(d[1])) return false;
+            const b=d.slice(1);
+            if (/^(\d)\1{9}$/.test(b)) return false;
+            if (b==='1234567890'||b==='9876543210') return false;
+            return true;
+        }
+
+        function setStatus(valid, show) {
+            ph.classList.remove('phone-ok','phone-err');
+            err.classList.remove('show');
+            if (!show) return;
+            if (valid) { ph.classList.add('phone-ok'); }
+            else       { ph.classList.add('phone-err'); err.classList.add('show'); }
+        }
+
+        ph.addEventListener('focus', () => { if (!ph.value) ph.value='+7 ('; });
+        ph.addEventListener('input', () => {
+            const {f,d} = fmt(ph.value);
+            ph.value = f;
+            setStatus(isValid(d), d.length===11);
+        });
+        ph.addEventListener('blur', () => {
+            const {d} = fmt(ph.value);
+            if (d.length>0) setStatus(isValid(d), true);
+        });
+        ph.addEventListener('keydown', e => {
+            if ([8,9,46,37,38,39,40].includes(e.keyCode)) return;
+            if ((e.ctrlKey||e.metaKey)&&[65,67,86,88].includes(e.keyCode)) return;
+            if (!/^\d$/.test(e.key)) e.preventDefault();
+        });
+    });
+
+    /* ── ОТПРАВКА ФОРМЫ ── */
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        const ph  = document.getElementById('phone');
+        const err = document.getElementById('phone-error');
+        const digits = ph.value.replace(/\D/g,'');
+        if (digits.length!==11) {
+            ph.classList.add('phone-err');
+            err.classList.add('show');
+            ph.focus();
+            return;
+        }
+
+        const btn = e.target.querySelector('button[type=submit]');
+        btn.textContent = '⏳ Отправляем...';
+        btn.disabled = true;
+
+        const name    = document.getElementById('name').value.trim();
+        const phone   = ph.value.trim();
+        const city    = document.getElementById('city').value.trim();
+        const area    = document.getElementById('area').value.trim();
+        const comment = document.getElementById('comment').value.trim();
+        const now     = new Date().toLocaleString('ru-RU',{timeZone:'Europe/Moscow'});
+
+        const tgText = [
+            '🔥 *Новая заявка АБРА*','',
+            `👤 *Имя:* ${name}`,
+            `📞 *Телефон:* ${phone}`,
+            `📍 *Город:* ${city}`,
+            area    ? `📐 *Площадь:* ${area} м²` : '',
+            comment ? `💬 *Комментарий:* ${comment}` : '',
+            '',`🕐 ${now} (МСК)`
+        ].filter(Boolean).join('\n');
+
+        const p1 = TG_TOKEN!=='ВСТАВЬТЕ_ТОКЕН_БОТА'
+            ? fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({chat_id:TG_CHAT_ID,text:tgText,parse_mode:'Markdown'})
+              }).catch(()=>null)
+            : Promise.resolve();
+
+        const p2 = FORMSPREE_ID!=='ВСТАВЬТЕ_FORMSPREE_ID'
+            ? fetch(`https://formspree.io/f/${FORMSPREE_ID}`,{
+                method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+                body:JSON.stringify({name,phone,city,area,comment,_subject:`Заявка АБРА — ${name} (${city})`})
+              }).catch(()=>null)
+            : Promise.resolve();
+
+        await Promise.allSettled([p1,p2]);
+
+        document.getElementById('contactForm').style.display='none';
+        document.getElementById('formSuccess').classList.remove('hidden');
+    }
+
+    /* ── SCROLL ANIMATIONS ── */
+    const io = new IntersectionObserver(entries=>{
+        entries.forEach(el=>{ if(el.isIntersecting){el.target.classList.add('visible');io.unobserve(el.target);} });
+    },{threshold:0.1});
+    document.querySelectorAll('.anim').forEach(el=>io.observe(el));
+
+    /* ── HEADER HIDE ON SCROLL ── */
+    let lastY=0;
+    const hdr=document.querySelector('header');
+    window.addEventListener('scroll',()=>{
+        const y=window.scrollY;
+        hdr.style.transform=y>lastY&&y>120?'translateY(-100%)':'translateY(0)';
+        hdr.style.transition='transform 0.3s ease';
+        lastY=y;
+    },{passive:true});
+    </script>
+</body>
+</html>
